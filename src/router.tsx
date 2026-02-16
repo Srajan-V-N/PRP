@@ -8,6 +8,7 @@ import { Resources } from '@/pages/Resources';
 import { Profile } from '@/pages/Profile';
 import { TestChecklist } from '@/pages/TestChecklist';
 import { Ship } from '@/pages/Ship';
+import { Proof } from '@/pages/Proof';
 
 export const router = createBrowserRouter([
   {
@@ -32,5 +33,9 @@ export const router = createBrowserRouter([
   {
     path: '/prp/08-ship',
     element: <Ship />,
+  },
+  {
+    path: '/prp/proof',
+    element: <Proof />,
   },
 ]);

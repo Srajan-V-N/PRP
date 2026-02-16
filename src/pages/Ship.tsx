@@ -44,6 +44,9 @@ export function Ship() {
           </Card>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link to="/prp/proof">
+              <Button>Submit Proof</Button>
+            </Link>
             <Link to="/prp/07-test">
               <Button variant="secondary">Test Checklist</Button>
             </Link>
