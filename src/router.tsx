@@ -6,6 +6,8 @@ import { Practice } from '@/pages/Practice';
 import { Assessments } from '@/pages/Assessments';
 import { Resources } from '@/pages/Resources';
 import { Profile } from '@/pages/Profile';
+import { TestChecklist } from '@/pages/TestChecklist';
+import { Ship } from '@/pages/Ship';
 
 export const router = createBrowserRouter([
   {
@@ -22,5 +24,13 @@ export const router = createBrowserRouter([
       { path: 'resources', element: <Resources /> },
       { path: 'profile', element: <Profile /> },
     ],
+  },
+  {
+    path: '/prp/07-test',
+    element: <TestChecklist />,
+  },
+  {
+    path: '/prp/08-ship',
+    element: <Ship />,
   },
 ]);

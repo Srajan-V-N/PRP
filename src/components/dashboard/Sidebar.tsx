@@ -5,6 +5,8 @@ import {
   ClipboardCheck,
   BookOpen,
   User,
+  ListChecks,
+  Rocket,
 } from 'lucide-react';
 
 const links = [
@@ -13,6 +15,8 @@ const links = [
   { to: '/dashboard/assessments', icon: ClipboardCheck, label: 'Assessments' },
   { to: '/dashboard/resources', icon: BookOpen, label: 'Resources' },
   { to: '/dashboard/profile', icon: User, label: 'Profile' },
+  { to: '/prp/07-test', icon: ListChecks, label: 'Test Checklist' },
+  { to: '/prp/08-ship', icon: Rocket, label: 'Ship' },
 ];
 
 export function Sidebar() {
