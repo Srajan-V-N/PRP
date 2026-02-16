@@ -203,6 +203,58 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
         </div>
       </Card>
 
+      {/* Company Intel */}
+      {entry.companyIntel && (
+        <Card>
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">
+            Company Intel
+          </h3>
+          <div className="flex flex-wrap gap-3">
+            <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+              {entry.companyIntel.industry}
+            </span>
+            <span className="rounded-full bg-purple-100 px-3 py-1 text-xs font-medium text-purple-700">
+              {entry.companyIntel.sizeLabel}
+            </span>
+          </div>
+          <p className="mt-3 text-sm text-gray-700">
+            {entry.companyIntel.hiringFocus}
+          </p>
+          <p className="mt-3 text-xs italic text-gray-400">
+            Demo Mode: Company intel generated heuristically.
+          </p>
+        </Card>
+      )}
+
+      {/* Expected Interview Rounds */}
+      {entry.roundMapping && entry.roundMapping.length > 0 && (
+        <Card>
+          <h3 className="mb-6 text-lg font-semibold text-gray-900">
+            Expected Interview Rounds
+          </h3>
+          <div className="relative ml-4 border-l-2 border-primary pl-6">
+            {entry.roundMapping.map((r, i) => (
+              <div key={i} className="relative mb-8 last:mb-0">
+                <div className="absolute -left-[calc(1.5rem+5px)] flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
+                  {i + 1}
+                </div>
+                <h4 className="text-sm font-bold text-gray-900">{r.round}</h4>
+                <span className="text-xs font-medium text-primary">{r.focus}</span>
+                <p className="mt-1 text-xs italic text-gray-500">{r.why}</p>
+                <ul className="mt-2 space-y-1">
+                  {r.tips.map((tip, j) => (
+                    <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
+                      <span className="mt-0.5 text-primary">•</span>
+                      {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Export Buttons */}
       <div className="flex flex-wrap gap-2">
         {exportButtons.map(({ key, label, action }) => (

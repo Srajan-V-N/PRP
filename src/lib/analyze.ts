@@ -204,6 +204,91 @@ const PLAN_TEMPLATES: Record<string, { day: string; title: string; tasks: string
   ],
 };
 
+const KNOWN_ENTERPRISES = [
+  'amazon', 'google', 'microsoft', 'apple', 'meta', 'infosys', 'tcs', 'wipro',
+  'hcl', 'cognizant', 'accenture', 'ibm', 'oracle', 'sap', 'deloitte',
+  'capgemini', 'tech mahindra', 'ltimindtree', 'flipkart', 'walmart',
+  'goldman sachs', 'jp morgan', 'morgan stanley', 'adobe', 'salesforce',
+  'cisco', 'intel', 'samsung', 'qualcomm', 'paypal', 'uber', 'airbnb', 'netflix',
+];
+
+export function getCompanyIntel(
+  company: string,
+  skills: Record<string, string[]>,
+): { name: string; industry: string; sizeCategory: 'Startup' | 'Mid-size' | 'Enterprise'; sizeLabel: string; hiringFocus: string } {
+  const normalized = company.trim().toLowerCase();
+
+  const sizeCategory: 'Startup' | 'Mid-size' | 'Enterprise' = KNOWN_ENTERPRISES.includes(normalized)
+    ? 'Enterprise'
+    : 'Startup';
+
+  const sizeLabel = sizeCategory === 'Enterprise' ? 'Enterprise (2000+)' : 'Startup (1-200)';
+
+  let industry = 'Technology Services';
+  if (/bank|financial|capital|goldman|morgan|jp\s?morgan/.test(normalized)) {
+    industry = 'Financial Services';
+  } else if (/health|pharma/.test(normalized)) {
+    industry = 'Healthcare';
+  }
+
+  const hiringFocus = sizeCategory === 'Enterprise'
+    ? 'Structured DSA rounds + core CS fundamentals. Expect aptitude screening, multiple technical rounds, and HR.'
+    : 'Practical problem-solving + stack depth. Expect hands-on coding tasks, system design discussions, and culture fit.';
+
+  return { name: company.trim(), industry, sizeCategory, sizeLabel, hiringFocus };
+}
+
+export function generateRoundMapping(
+  sizeCategory: 'Startup' | 'Mid-size' | 'Enterprise',
+  skills: Record<string, string[]>,
+): { round: string; focus: string; why: string; tips: string[] }[] {
+  const categories = Object.keys(skills);
+  const hasDSA = categories.includes('Core CS');
+  const hasWeb = categories.includes('Web');
+
+  if (sizeCategory === 'Enterprise' && hasDSA) {
+    return [
+      { round: 'Round 1: Online Test', focus: 'DSA + Aptitude', why: 'Companies use this round to filter candidates on problem-solving speed and accuracy.', tips: ['Practice timed contests on LeetCode or Codeforces', 'Revise aptitude shortcuts for quant and logical sections', 'Aim for accuracy over speed — partial scores count'] },
+      { round: 'Round 2: Technical', focus: 'DSA + Core CS', why: 'This round tests depth of understanding in data structures, algorithms, and CS fundamentals.', tips: ['Be ready to code on a shared editor while explaining your approach', 'Brush up on OS, DBMS, and networking basics', 'Practice articulating time and space complexity'] },
+      { round: 'Round 3: Tech + Projects', focus: 'System Design + Project Discussion', why: 'Interviewers assess your ability to design systems and discuss real projects in depth.', tips: ['Prepare a 2-minute walkthrough for your top projects', 'Study basic system design patterns (load balancer, caching, DB sharding)'] },
+      { round: 'Round 4: HR', focus: 'Behavioral + Culture Fit', why: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.', tips: ['Use the STAR format for behavioral answers', 'Research the company values and recent news', 'Prepare 2-3 questions to ask the interviewer'] },
+    ];
+  }
+
+  if (sizeCategory === 'Enterprise' && hasWeb && !hasDSA) {
+    return [
+      { round: 'Round 1: Online Test', focus: 'Coding + Aptitude', why: 'Companies use this round to filter candidates on problem-solving speed and accuracy.', tips: ['Practice coding problems focused on arrays, strings, and basic logic', 'Revise aptitude shortcuts for quant and logical sections'] },
+      { round: 'Round 2: Technical', focus: 'Frontend/Backend Fundamentals', why: 'This round evaluates your understanding of web technologies and frameworks.', tips: ['Review component lifecycle, state management, and hooks', 'Be ready to discuss REST API design and HTTP methods', 'Prepare to live-code a small feature or debug a snippet'] },
+      { round: 'Round 3: System Design', focus: 'Architecture Discussion', why: 'Interviewers assess your ability to reason about scalable web architectures.', tips: ['Study frontend architecture patterns (SSR, CSR, caching)', 'Understand CDN, load balancer, and deployment basics'] },
+      { round: 'Round 4: HR', focus: 'Behavioral + Culture Fit', why: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.', tips: ['Showcase deployed projects or portfolio', 'Use the STAR format for behavioral answers', 'Prepare 2-3 questions to ask the interviewer'] },
+    ];
+  }
+
+  if (sizeCategory === 'Enterprise') {
+    return [
+      { round: 'Round 1: Online Test', focus: 'Coding + Aptitude', why: 'Companies use this round to filter candidates on problem-solving speed and accuracy.', tips: ['Practice timed coding problems on competitive platforms', 'Revise aptitude and logical reasoning fundamentals'] },
+      { round: 'Round 2: Technical', focus: 'Core Concepts + Problem Solving', why: 'This round tests fundamental understanding and your ability to solve problems under pressure.', tips: ['Review core concepts of your primary language and domain', 'Practice explaining your thought process clearly'] },
+      { round: 'Round 3: Tech + Projects', focus: 'Project Discussion + Domain Knowledge', why: 'Interviewers want to see real-world application of your skills through projects.', tips: ['Prepare a 2-minute walkthrough for your top projects', 'Be ready to discuss challenges faced and decisions made'] },
+      { round: 'Round 4: HR', focus: 'Behavioral + Culture Fit', why: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.', tips: ['Use the STAR format for behavioral answers', 'Research the company values and recent news', 'Prepare 2-3 questions to ask the interviewer'] },
+    ];
+  }
+
+  if (sizeCategory === 'Mid-size') {
+    return [
+      { round: 'Round 1: Online Assessment', focus: 'Coding + Aptitude', why: 'Mid-size companies use online assessments to efficiently screen a large applicant pool.', tips: ['Practice timed coding problems on competitive platforms', 'Revise aptitude and logical reasoning fundamentals'] },
+      { round: 'Round 2: Technical Interview', focus: 'Core concepts + project discussion', why: 'This round combines technical depth with practical experience evaluation.', tips: ['Review core concepts and prepare project walk-throughs', 'Practice explaining your thought process clearly'] },
+      { round: 'Round 3: HR / Managerial', focus: 'Behavioral + Team Fit', why: 'This round assesses your collaboration skills and alignment with team culture.', tips: ['Use the STAR format for behavioral answers', 'Prepare examples of teamwork and conflict resolution', 'Research the company thoroughly'] },
+    ];
+  }
+
+  // Startup
+  return [
+    { round: 'Round 1: Practical Coding', focus: 'Hands-on coding task', why: 'Startups prioritize builders — this round tests if you can ship working code quickly.', tips: ['Build a small feature end-to-end before the interview as practice', 'Focus on clean, readable code over premature optimization'] },
+    { round: 'Round 2: System Discussion', focus: 'Architecture + Stack-specific questions', why: 'Startups need engineers who can reason about the full stack and make pragmatic trade-offs.', tips: ['Be ready to discuss your tech stack choices and trade-offs', 'Study the company\'s product and think about how you\'d improve it'] },
+    { round: 'Round 3: Culture Fit', focus: 'Team fit + HR', why: 'In small teams, culture fit matters as much as technical skill.', tips: ['Show genuine enthusiasm for the company\'s mission', 'Prepare examples of ownership, initiative, and fast learning'] },
+  ];
+}
+
 export function extractSkills(jdText: string): Record<string, string[]> {
   const text = jdText.toLowerCase();
   const result: Record<string, string[]> = {};

@@ -8,6 +8,8 @@ import {
   generateChecklist,
   generatePlan,
   generateQuestions,
+  getCompanyIntel,
+  generateRoundMapping,
 } from '@/lib/analyze';
 import { saveAnalysis, updateEntry, getHistory } from '@/lib/storage';
 import type { AnalysisEntry } from '@/lib/types';
@@ -44,6 +46,9 @@ export function Assessments() {
     const plan = generatePlan(skills);
     const questions = generateQuestions(skills);
 
+    const companyIntel = company.trim() ? getCompanyIntel(company, skills) : undefined;
+    const roundMapping = generateRoundMapping(companyIntel?.sizeCategory ?? 'Startup', skills);
+
     const entry: AnalysisEntry = {
       id: crypto.randomUUID(),
       createdAt: new Date().toISOString(),
@@ -56,6 +61,8 @@ export function Assessments() {
       questions,
       readinessScore,
       baseReadinessScore: readinessScore,
+      companyIntel,
+      roundMapping,
     };
 
     saveAnalysis(entry);
