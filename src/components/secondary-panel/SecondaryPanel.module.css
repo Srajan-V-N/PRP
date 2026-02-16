@@ -1,0 +1,11 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.explanation {
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+  line-height: var(--leading-relaxed);
+}

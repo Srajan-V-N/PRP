@@ -1,0 +1,11 @@
+:root {
+  --color-bg: #F7F6F3;
+  --color-text: #111111;
+  --color-accent: #8B0000;
+  --color-accent-hover: #6B0000;
+  --color-success: #4A7C59;
+  --color-warning: #B8860B;
+  --color-border: #D4D2CC;
+  --color-surface: #FFFFFF;
+  --color-muted: #6B6B6B;
+}

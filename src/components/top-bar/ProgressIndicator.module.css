@@ -1,0 +1,28 @@
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--text-sm);
+  color: var(--color-muted);
+}
+
+.bar {
+  display: flex;
+  gap: 3px;
+}
+
+.segment {
+  width: 24px;
+  height: 4px;
+  border-radius: 2px;
+  background-color: var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.segment.active {
+  background-color: var(--color-accent);
+}
+
+.segment.complete {
+  background-color: var(--color-success);
+}

@@ -1,0 +1,8 @@
+.actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.actions > * {
+  flex: 1;
+}
