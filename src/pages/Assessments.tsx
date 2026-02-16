@@ -39,28 +39,41 @@ export function Assessments() {
     }
   }, [location.state]);
 
+  const isJdEmpty = jdText.trim().length === 0;
+  const isJdShort = !isJdEmpty && jdText.trim().length < 200;
+
   function handleAnalyze() {
     const skills = extractSkills(jdText);
-    const readinessScore = computeReadinessScore(skills, company, role, jdText);
+    const baseScore = computeReadinessScore(skills, company, role, jdText);
     const checklist = generateChecklist(skills);
-    const plan = generatePlan(skills);
+    const plan7Days = generatePlan(skills);
     const questions = generateQuestions(skills);
 
     const companyIntel = company.trim() ? getCompanyIntel(company, skills) : undefined;
     const roundMapping = generateRoundMapping(companyIntel?.sizeCategory ?? 'Startup', skills);
 
+    // Build skillConfidenceMap with all skills defaulting to 'practice'
+    const allSkills = Object.values(skills).flat();
+    const skillConfidenceMap: Record<string, 'know' | 'practice'> = {};
+    for (const skill of allSkills) {
+      skillConfidenceMap[skill] = 'practice';
+    }
+
+    const now = new Date().toISOString();
     const entry: AnalysisEntry = {
       id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      updatedAt: now,
       company: company.trim(),
       role: role.trim(),
       jdText,
       extractedSkills: skills,
-      plan,
+      plan7Days,
       checklist,
       questions,
-      readinessScore,
-      baseReadinessScore: readinessScore,
+      baseScore,
+      skillConfidenceMap,
+      finalScore: baseScore,
       companyIntel,
       roundMapping,
     };
@@ -140,8 +153,15 @@ export function Assessments() {
                 rows={8}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               />
+              {isJdShort && (
+                <p className="mt-1 text-sm text-amber-600">
+                  This JD is too short to analyze deeply. Paste full JD for better output.
+                </p>
+              )}
             </div>
-            <Button onClick={handleAnalyze}>Analyze</Button>
+            <Button onClick={handleAnalyze} disabled={isJdEmpty}>
+              Analyze
+            </Button>
           </div>
         </Card>
       )}

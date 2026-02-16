@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { Card, Button } from '@/components/ui';
-import { getHistory, deleteEntry } from '@/lib/storage';
+import { getHistoryWithStatus, deleteEntry } from '@/lib/storage';
 import type { AnalysisEntry } from '@/lib/types';
 import { Trash2 } from 'lucide-react';
 
 export function Resources() {
   const navigate = useNavigate();
   const [history, setHistory] = useState<AnalysisEntry[]>([]);
+  const [hadCorruption, setHadCorruption] = useState(false);
 
   useEffect(() => {
-    setHistory(getHistory());
+    const { entries, hadCorruption: corrupted } = getHistoryWithStatus();
+    setHistory(entries);
+    setHadCorruption(corrupted);
   }, []);
 
   function handleDelete(id: string) {
@@ -26,6 +29,14 @@ export function Resources() {
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900">Resources</h2>
+
+      {hadCorruption && (
+        <Card className="mt-4 border-amber-200 bg-amber-50">
+          <p className="text-sm text-amber-700">
+            One saved entry couldn't be loaded. Create a new analysis.
+          </p>
+        </Card>
+      )}
 
       {history.length === 0 ? (
         <Card className="mt-6">
@@ -55,14 +66,14 @@ export function Resources() {
                   )}
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-xs font-bold text-white ${
-                      entry.readinessScore >= 75
+                      entry.finalScore >= 75
                         ? 'bg-green-500'
-                        : entry.readinessScore >= 50
+                        : entry.finalScore >= 50
                           ? 'bg-yellow-500'
                           : 'bg-red-500'
                     }`}
                   >
-                    {entry.readinessScore}%
+                    {entry.finalScore}%
                   </span>
                 </div>
                 <p className="mt-1 text-sm text-gray-500">

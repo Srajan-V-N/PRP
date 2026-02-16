@@ -1,16 +1,45 @@
+export interface ExtractedSkills {
+  coreCS: string[];
+  languages: string[];
+  web: string[];
+  data: string[];
+  cloud: string[];
+  testing: string[];
+  other: string[];
+}
+
+export interface RoundMapping {
+  roundTitle: string;
+  focusAreas: string[];
+  whyItMatters: string;
+}
+
+export interface ChecklistRound {
+  roundTitle: string;
+  items: string[];
+}
+
+export interface PlanDay {
+  day: string;
+  focus: string;
+  tasks: string[];
+}
+
 export interface AnalysisEntry {
   id: string;
   createdAt: string;
+  updatedAt: string;
   company: string;
   role: string;
   jdText: string;
-  extractedSkills: Record<string, string[]>;
-  plan: { day: string; title: string; tasks: string[] }[];
-  checklist: { round: string; items: string[] }[];
+  extractedSkills: ExtractedSkills;
+  roundMapping: RoundMapping[];
+  checklist: ChecklistRound[];
+  plan7Days: PlanDay[];
   questions: string[];
-  readinessScore: number;
-  baseReadinessScore: number;
-  skillConfidenceMap?: Record<string, 'know' | 'practice'>;
+  baseScore: number;
+  skillConfidenceMap: Record<string, 'know' | 'practice'>;
+  finalScore: number;
   companyIntel?: {
     name: string;
     industry: string;
@@ -18,10 +47,4 @@ export interface AnalysisEntry {
     sizeLabel: string;
     hiringFocus: string;
   };
-  roundMapping?: {
-    round: string;
-    focus: string;
-    why: string;
-    tips: string[];
-  }[];
 }

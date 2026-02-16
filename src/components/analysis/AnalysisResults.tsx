@@ -1,6 +1,16 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Card } from '@/components/ui';
-import type { AnalysisEntry } from '@/lib/types';
+import type { AnalysisEntry, ExtractedSkills } from '@/lib/types';
+
+const CATEGORY_LABELS: Record<keyof ExtractedSkills, string> = {
+  coreCS: 'Core CS',
+  languages: 'Languages',
+  web: 'Web',
+  data: 'Data',
+  cloud: 'Cloud/DevOps',
+  testing: 'Testing',
+  other: 'General',
+};
 
 function ScoreGauge({ score }: { score: number }) {
   const radius = 54;
@@ -74,13 +84,13 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const adjustedScore = useMemo(() => {
-    const base = entry.baseReadinessScore ?? entry.readinessScore;
+    const base = entry.baseScore;
     let adjustment = 0;
     for (const skill of allSkills) {
       adjustment += confidenceMap[skill] === 'know' ? 2 : 0;
     }
     return Math.max(0, Math.min(100, base + adjustment));
-  }, [entry.baseReadinessScore, entry.readinessScore, allSkills, confidenceMap]);
+  }, [entry.baseScore, allSkills, confidenceMap]);
 
   const toggleSkill = useCallback(
     (skill: string) => {
@@ -91,7 +101,7 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
         } as Record<string, 'know' | 'practice'>;
 
         // Compute new adjusted score for the updated entry
-        const base = entry.baseReadinessScore ?? entry.readinessScore;
+        const base = entry.baseScore;
         let adj = 0;
         for (const s of allSkills) {
           adj += next[s] === 'know' ? 2 : 0;
@@ -101,7 +111,8 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
         const updated: AnalysisEntry = {
           ...entry,
           skillConfidenceMap: next,
-          readinessScore: newScore,
+          finalScore: newScore,
+          updatedAt: new Date().toISOString(),
         };
         onEntryChange?.(updated);
 
@@ -114,17 +125,17 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
   // --- Export helpers ---
 
   function formatPlanText(): string {
-    return entry.plan
-      .map(({ day, title, tasks }) =>
-        `${day}: ${title}\n${tasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}`,
+    return entry.plan7Days
+      .map(({ day, focus, tasks }) =>
+        `${day}: ${focus}\n${tasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}`,
       )
       .join('\n\n');
   }
 
   function formatChecklistText(): string {
     return entry.checklist
-      .map(({ round, items }) =>
-        `${round}\n${items.map((item) => `  - ${item}`).join('\n')}`,
+      .map(({ roundTitle, items }) =>
+        `${roundTitle}\n${items.map((item) => `  - ${item}`).join('\n')}`,
       )
       .join('\n\n');
   }
@@ -134,14 +145,16 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
   }
 
   function formatFullTxt(): string {
+    const skillLines = (Object.keys(entry.extractedSkills) as (keyof ExtractedSkills)[])
+      .filter((key) => entry.extractedSkills[key].length > 0)
+      .map((key) => `${CATEGORY_LABELS[key]}: ${entry.extractedSkills[key].join(', ')}`);
+
     const sections = [
       `${entry.role}${entry.company ? ` @ ${entry.company}` : ''}`,
       `Readiness Score: ${adjustedScore}/100`,
       '',
       '=== KEY SKILLS ===',
-      ...Object.entries(entry.extractedSkills).map(
-        ([cat, skills]) => `${cat}: ${skills.join(', ')}`,
-      ),
+      ...skillLines,
       '',
       '=== 7-DAY PLAN ===',
       formatPlanText(),
@@ -227,7 +240,7 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
       )}
 
       {/* Expected Interview Rounds */}
-      {entry.roundMapping && entry.roundMapping.length > 0 && (
+      {entry.roundMapping.length > 0 && (
         <Card>
           <h3 className="mb-6 text-lg font-semibold text-gray-900">
             Expected Interview Rounds
@@ -238,17 +251,9 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
                 <div className="absolute -left-[calc(1.5rem+5px)] flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-white">
                   {i + 1}
                 </div>
-                <h4 className="text-sm font-bold text-gray-900">{r.round}</h4>
-                <span className="text-xs font-medium text-primary">{r.focus}</span>
-                <p className="mt-1 text-xs italic text-gray-500">{r.why}</p>
-                <ul className="mt-2 space-y-1">
-                  {r.tips.map((tip, j) => (
-                    <li key={j} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="mt-0.5 text-primary">•</span>
-                      {tip}
-                    </li>
-                  ))}
-                </ul>
+                <h4 className="text-sm font-bold text-gray-900">{r.roundTitle}</h4>
+                <span className="text-xs font-medium text-primary">{r.focusAreas.join(', ')}</span>
+                <p className="mt-1 text-xs italic text-gray-500">{r.whyItMatters}</p>
               </div>
             ))}
           </div>
@@ -277,31 +282,33 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
           Click a skill to mark it as known — your readiness score updates live.
         </p>
         <div className="space-y-3">
-          {Object.entries(entry.extractedSkills).map(([category, skills]) => (
-            <div key={category}>
-              <span className="text-sm font-medium text-gray-700">
-                {category}
-              </span>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {skills.map((skill) => {
-                  const isKnown = confidenceMap[skill] === 'know';
-                  return (
-                    <button
-                      key={skill}
-                      onClick={() => toggleSkill(skill)}
-                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
-                        isKnown
-                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                          : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
-                      }`}
-                    >
-                      {skill} {isKnown ? '— I know this' : '— Need practice'}
-                    </button>
-                  );
-                })}
+          {(Object.keys(entry.extractedSkills) as (keyof ExtractedSkills)[])
+            .filter((key) => entry.extractedSkills[key].length > 0)
+            .map((key) => (
+              <div key={key}>
+                <span className="text-sm font-medium text-gray-700">
+                  {CATEGORY_LABELS[key]}
+                </span>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {entry.extractedSkills[key].map((skill) => {
+                    const isKnown = confidenceMap[skill] === 'know';
+                    return (
+                      <button
+                        key={skill}
+                        onClick={() => toggleSkill(skill)}
+                        className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                          isKnown
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                        }`}
+                      >
+                        {skill} {isKnown ? '— I know this' : '— Need practice'}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       </Card>
 
@@ -311,13 +318,13 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
           Interview Preparation Checklist
         </h3>
         <div className="grid gap-4 md:grid-cols-2">
-          {entry.checklist.map(({ round, items }) => (
+          {entry.checklist.map(({ roundTitle, items }) => (
             <div
-              key={round}
+              key={roundTitle}
               className="rounded-lg border border-gray-200 p-4"
             >
               <h4 className="mb-2 text-sm font-semibold text-primary">
-                {round}
+                {roundTitle}
               </h4>
               <ul className="space-y-1.5">
                 {items.map((item, i) => (
@@ -341,7 +348,7 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
           7-Day Preparation Plan
         </h3>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {entry.plan.map(({ day, title, tasks }) => (
+          {entry.plan7Days.map(({ day, focus, tasks }) => (
             <div
               key={day}
               className="rounded-lg border border-gray-200 p-4"
@@ -351,7 +358,7 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
                   {day}
                 </span>
                 <span className="text-sm font-semibold text-gray-800">
-                  {title}
+                  {focus}
                 </span>
               </div>
               <ul className="space-y-1">
@@ -423,13 +430,13 @@ export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) 
                   </span>
                 ))}
               </div>
-              {entry.plan[0] && (
+              {entry.plan7Days[0] && (
                 <p className="text-sm text-gray-700">
                   Start with{' '}
                   <span className="font-semibold">Day 1</span> of your prep
                   plan —{' '}
                   <span className="font-medium text-primary">
-                    {entry.plan[0].title}
+                    {entry.plan7Days[0].focus}
                   </span>
                 </p>
               )}

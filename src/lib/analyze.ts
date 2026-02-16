@@ -1,3 +1,5 @@
+import type { ExtractedSkills, RoundMapping, ChecklistRound, PlanDay } from './types';
+
 const SKILL_MAP: Record<string, string[]> = {
   'Core CS': [
     'data structures', 'algorithms', 'dsa', 'oop', 'object oriented',
@@ -33,6 +35,15 @@ const SKILL_MAP: Record<string, string[]> = {
     'e2e', 'end to end', 'test driven',
   ],
 } as const;
+
+const CATEGORY_KEY_MAP: Record<string, keyof ExtractedSkills> = {
+  'Core CS': 'coreCS',
+  'Languages': 'languages',
+  'Web': 'web',
+  'Data': 'data',
+  'Cloud/DevOps': 'cloud',
+  'Testing': 'testing',
+};
 
 const QUESTION_BANK: Record<string, string[]> = {
   'Core CS': [
@@ -174,33 +185,33 @@ const CHECKLIST_TEMPLATES: Record<string, Record<string, string[]>> = {
   },
 };
 
-const PLAN_TEMPLATES: Record<string, { day: string; title: string; tasks: string[] }[]> = {
+const PLAN_TEMPLATES: Record<string, { day: string; focus: string; tasks: string[] }[]> = {
   'Core CS': [
-    { day: 'Day 1', title: 'Foundations Review', tasks: ['Review arrays, strings, and hash maps', 'Solve 5 easy-level DSA problems', 'Revise Big-O notation and complexity analysis'] },
-    { day: 'Day 2', title: 'Data Structures Deep Dive', tasks: ['Study linked lists, stacks, and queues', 'Solve 5 medium-level problems on these topics', 'Review tree and graph basics'] },
-    { day: 'Day 3', title: 'Algorithms & Patterns', tasks: ['Practice sorting and searching algorithms', 'Study two-pointer and sliding window techniques', 'Solve 3 dynamic programming problems'] },
-    { day: 'Day 4', title: 'OOP & System Design Basics', tasks: ['Review OOP principles with code examples', 'Study basic design patterns (Singleton, Factory, Observer)', 'Learn system design fundamentals'] },
-    { day: 'Day 5', title: 'Mock Interviews', tasks: ['Take a timed coding assessment (90 min)', 'Practice explaining solutions out loud', 'Review and optimize previous solutions'] },
-    { day: 'Day 6', title: 'Weak Areas & Projects', tasks: ['Revisit topics you struggled with', 'Prepare project walk-throughs', 'Practice behavioral questions using STAR format'] },
-    { day: 'Day 7', title: 'Final Prep', tasks: ['Take a full mock interview', 'Review company-specific information', 'Prepare questions for the interviewer', 'Rest and stay confident'] },
+    { day: 'Day 1', focus: 'Foundations Review', tasks: ['Review arrays, strings, and hash maps', 'Solve 5 easy-level DSA problems', 'Revise Big-O notation and complexity analysis'] },
+    { day: 'Day 2', focus: 'Data Structures Deep Dive', tasks: ['Study linked lists, stacks, and queues', 'Solve 5 medium-level problems on these topics', 'Review tree and graph basics'] },
+    { day: 'Day 3', focus: 'Algorithms & Patterns', tasks: ['Practice sorting and searching algorithms', 'Study two-pointer and sliding window techniques', 'Solve 3 dynamic programming problems'] },
+    { day: 'Day 4', focus: 'OOP & System Design Basics', tasks: ['Review OOP principles with code examples', 'Study basic design patterns (Singleton, Factory, Observer)', 'Learn system design fundamentals'] },
+    { day: 'Day 5', focus: 'Mock Interviews', tasks: ['Take a timed coding assessment (90 min)', 'Practice explaining solutions out loud', 'Review and optimize previous solutions'] },
+    { day: 'Day 6', focus: 'Weak Areas & Projects', tasks: ['Revisit topics you struggled with', 'Prepare project walk-throughs', 'Practice behavioral questions using STAR format'] },
+    { day: 'Day 7', focus: 'Final Prep', tasks: ['Take a full mock interview', 'Review company-specific information', 'Prepare questions for the interviewer', 'Rest and stay confident'] },
   ],
   Web: [
-    { day: 'Day 1', title: 'Frontend Fundamentals', tasks: ['Review HTML5 semantic elements and accessibility', 'Practice CSS layouts (Flexbox, Grid)', 'Build a responsive component from scratch'] },
-    { day: 'Day 2', title: 'JavaScript & Framework Deep Dive', tasks: ['Review JS closures, promises, and async/await', 'Study component lifecycle and hooks', 'Build a small CRUD app with your framework'] },
-    { day: 'Day 3', title: 'Backend & API', tasks: ['Review REST API design and HTTP methods', 'Practice building a simple API endpoint', 'Study authentication and middleware patterns'] },
-    { day: 'Day 4', title: 'Full Stack Integration', tasks: ['Connect frontend to a backend API', 'Handle loading states, errors, and edge cases', 'Practice state management patterns'] },
-    { day: 'Day 5', title: 'Performance & Testing', tasks: ['Study web performance optimization techniques', 'Write unit tests for your components', 'Learn about lighthouse audits and core web vitals'] },
-    { day: 'Day 6', title: 'System Design & Architecture', tasks: ['Design a frontend architecture for a large app', 'Study caching, CDN, and deployment strategies', 'Practice explaining architectural decisions'] },
-    { day: 'Day 7', title: 'Final Prep', tasks: ['Review your portfolio projects', 'Take a mock technical interview', 'Prepare behavioral answers and questions to ask'] },
+    { day: 'Day 1', focus: 'Frontend Fundamentals', tasks: ['Review HTML5 semantic elements and accessibility', 'Practice CSS layouts (Flexbox, Grid)', 'Build a responsive component from scratch'] },
+    { day: 'Day 2', focus: 'JavaScript & Framework Deep Dive', tasks: ['Review JS closures, promises, and async/await', 'Study component lifecycle and hooks', 'Build a small CRUD app with your framework'] },
+    { day: 'Day 3', focus: 'Backend & API', tasks: ['Review REST API design and HTTP methods', 'Practice building a simple API endpoint', 'Study authentication and middleware patterns'] },
+    { day: 'Day 4', focus: 'Full Stack Integration', tasks: ['Connect frontend to a backend API', 'Handle loading states, errors, and edge cases', 'Practice state management patterns'] },
+    { day: 'Day 5', focus: 'Performance & Testing', tasks: ['Study web performance optimization techniques', 'Write unit tests for your components', 'Learn about lighthouse audits and core web vitals'] },
+    { day: 'Day 6', focus: 'System Design & Architecture', tasks: ['Design a frontend architecture for a large app', 'Study caching, CDN, and deployment strategies', 'Practice explaining architectural decisions'] },
+    { day: 'Day 7', focus: 'Final Prep', tasks: ['Review your portfolio projects', 'Take a mock technical interview', 'Prepare behavioral answers and questions to ask'] },
   ],
   General: [
-    { day: 'Day 1', title: 'Self Assessment', tasks: ['Identify your strongest technical skills', 'List areas that need improvement', 'Set up your study environment and tools'] },
-    { day: 'Day 2', title: 'Core Concepts Review', tasks: ['Review fundamentals of your primary language', 'Practice 5 basic coding problems', 'Study common data structures overview'] },
-    { day: 'Day 3', title: 'Problem Solving Practice', tasks: ['Solve 5 easy-medium coding problems', 'Practice writing clean, readable code', 'Review solutions and learn optimal approaches'] },
-    { day: 'Day 4', title: 'Project Preparation', tasks: ['Choose 2 projects to discuss in interviews', 'Prepare technical walk-throughs for each', 'Document challenges faced and solutions found'] },
-    { day: 'Day 5', title: 'Mock Assessment', tasks: ['Take a full timed mock test', 'Review incorrect answers thoroughly', 'Identify remaining weak areas'] },
-    { day: 'Day 6', title: 'Company Research & Soft Skills', tasks: ['Research target company thoroughly', 'Prepare STAR-format behavioral answers', 'Practice communication and presentation skills'] },
-    { day: 'Day 7', title: 'Final Review', tasks: ['Do a light review of key concepts', 'Prepare your interview day logistics', 'Rest well and build confidence'] },
+    { day: 'Day 1', focus: 'Self Assessment', tasks: ['Identify your strongest technical skills', 'List areas that need improvement', 'Set up your study environment and tools'] },
+    { day: 'Day 2', focus: 'Core Concepts Review', tasks: ['Review fundamentals of your primary language', 'Practice 5 basic coding problems', 'Study common data structures overview'] },
+    { day: 'Day 3', focus: 'Problem Solving Practice', tasks: ['Solve 5 easy-medium coding problems', 'Practice writing clean, readable code', 'Review solutions and learn optimal approaches'] },
+    { day: 'Day 4', focus: 'Project Preparation', tasks: ['Choose 2 projects to discuss in interviews', 'Prepare technical walk-throughs for each', 'Document challenges faced and solutions found'] },
+    { day: 'Day 5', focus: 'Mock Assessment', tasks: ['Take a full timed mock test', 'Review incorrect answers thoroughly', 'Identify remaining weak areas'] },
+    { day: 'Day 6', focus: 'Company Research & Soft Skills', tasks: ['Research target company thoroughly', 'Prepare STAR-format behavioral answers', 'Practice communication and presentation skills'] },
+    { day: 'Day 7', focus: 'Final Review', tasks: ['Do a light review of key concepts', 'Prepare your interview day logistics', 'Rest well and build confidence'] },
   ],
 };
 
@@ -214,7 +225,7 @@ const KNOWN_ENTERPRISES = [
 
 export function getCompanyIntel(
   company: string,
-  _skills: Record<string, string[]>,
+  _skills: ExtractedSkills,
 ): { name: string; industry: string; sizeCategory: 'Startup' | 'Mid-size' | 'Enterprise'; sizeLabel: string; hiringFocus: string } {
   const normalized = company.trim().toLowerCase();
 
@@ -240,82 +251,91 @@ export function getCompanyIntel(
 
 export function generateRoundMapping(
   sizeCategory: 'Startup' | 'Mid-size' | 'Enterprise',
-  skills: Record<string, string[]>,
-): { round: string; focus: string; why: string; tips: string[] }[] {
-  const categories = Object.keys(skills);
-  const hasDSA = categories.includes('Core CS');
-  const hasWeb = categories.includes('Web');
+  skills: ExtractedSkills,
+): RoundMapping[] {
+  const hasDSA = skills.coreCS.length > 0;
+  const hasWeb = skills.web.length > 0;
 
   if (sizeCategory === 'Enterprise' && hasDSA) {
     return [
-      { round: 'Round 1: Online Test', focus: 'DSA + Aptitude', why: 'Companies use this round to filter candidates on problem-solving speed and accuracy.', tips: ['Practice timed contests on LeetCode or Codeforces', 'Revise aptitude shortcuts for quant and logical sections', 'Aim for accuracy over speed — partial scores count'] },
-      { round: 'Round 2: Technical', focus: 'DSA + Core CS', why: 'This round tests depth of understanding in data structures, algorithms, and CS fundamentals.', tips: ['Be ready to code on a shared editor while explaining your approach', 'Brush up on OS, DBMS, and networking basics', 'Practice articulating time and space complexity'] },
-      { round: 'Round 3: Tech + Projects', focus: 'System Design + Project Discussion', why: 'Interviewers assess your ability to design systems and discuss real projects in depth.', tips: ['Prepare a 2-minute walkthrough for your top projects', 'Study basic system design patterns (load balancer, caching, DB sharding)'] },
-      { round: 'Round 4: HR', focus: 'Behavioral + Culture Fit', why: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.', tips: ['Use the STAR format for behavioral answers', 'Research the company values and recent news', 'Prepare 2-3 questions to ask the interviewer'] },
+      { roundTitle: 'Round 1: Online Test', focusAreas: ['DSA', 'Aptitude'], whyItMatters: 'Companies use this round to filter candidates on problem-solving speed and accuracy.' },
+      { roundTitle: 'Round 2: Technical', focusAreas: ['DSA', 'Core CS'], whyItMatters: 'This round tests depth of understanding in data structures, algorithms, and CS fundamentals.' },
+      { roundTitle: 'Round 3: Tech + Projects', focusAreas: ['System Design', 'Project Discussion'], whyItMatters: 'Interviewers assess your ability to design systems and discuss real projects in depth.' },
+      { roundTitle: 'Round 4: HR', focusAreas: ['Behavioral', 'Culture Fit'], whyItMatters: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.' },
     ];
   }
 
   if (sizeCategory === 'Enterprise' && hasWeb && !hasDSA) {
     return [
-      { round: 'Round 1: Online Test', focus: 'Coding + Aptitude', why: 'Companies use this round to filter candidates on problem-solving speed and accuracy.', tips: ['Practice coding problems focused on arrays, strings, and basic logic', 'Revise aptitude shortcuts for quant and logical sections'] },
-      { round: 'Round 2: Technical', focus: 'Frontend/Backend Fundamentals', why: 'This round evaluates your understanding of web technologies and frameworks.', tips: ['Review component lifecycle, state management, and hooks', 'Be ready to discuss REST API design and HTTP methods', 'Prepare to live-code a small feature or debug a snippet'] },
-      { round: 'Round 3: System Design', focus: 'Architecture Discussion', why: 'Interviewers assess your ability to reason about scalable web architectures.', tips: ['Study frontend architecture patterns (SSR, CSR, caching)', 'Understand CDN, load balancer, and deployment basics'] },
-      { round: 'Round 4: HR', focus: 'Behavioral + Culture Fit', why: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.', tips: ['Showcase deployed projects or portfolio', 'Use the STAR format for behavioral answers', 'Prepare 2-3 questions to ask the interviewer'] },
+      { roundTitle: 'Round 1: Online Test', focusAreas: ['Coding', 'Aptitude'], whyItMatters: 'Companies use this round to filter candidates on problem-solving speed and accuracy.' },
+      { roundTitle: 'Round 2: Technical', focusAreas: ['Frontend/Backend Fundamentals'], whyItMatters: 'This round evaluates your understanding of web technologies and frameworks.' },
+      { roundTitle: 'Round 3: System Design', focusAreas: ['Architecture Discussion'], whyItMatters: 'Interviewers assess your ability to reason about scalable web architectures.' },
+      { roundTitle: 'Round 4: HR', focusAreas: ['Behavioral', 'Culture Fit'], whyItMatters: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.' },
     ];
   }
 
   if (sizeCategory === 'Enterprise') {
     return [
-      { round: 'Round 1: Online Test', focus: 'Coding + Aptitude', why: 'Companies use this round to filter candidates on problem-solving speed and accuracy.', tips: ['Practice timed coding problems on competitive platforms', 'Revise aptitude and logical reasoning fundamentals'] },
-      { round: 'Round 2: Technical', focus: 'Core Concepts + Problem Solving', why: 'This round tests fundamental understanding and your ability to solve problems under pressure.', tips: ['Review core concepts of your primary language and domain', 'Practice explaining your thought process clearly'] },
-      { round: 'Round 3: Tech + Projects', focus: 'Project Discussion + Domain Knowledge', why: 'Interviewers want to see real-world application of your skills through projects.', tips: ['Prepare a 2-minute walkthrough for your top projects', 'Be ready to discuss challenges faced and decisions made'] },
-      { round: 'Round 4: HR', focus: 'Behavioral + Culture Fit', why: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.', tips: ['Use the STAR format for behavioral answers', 'Research the company values and recent news', 'Prepare 2-3 questions to ask the interviewer'] },
+      { roundTitle: 'Round 1: Online Test', focusAreas: ['Coding', 'Aptitude'], whyItMatters: 'Companies use this round to filter candidates on problem-solving speed and accuracy.' },
+      { roundTitle: 'Round 2: Technical', focusAreas: ['Core Concepts', 'Problem Solving'], whyItMatters: 'This round tests fundamental understanding and your ability to solve problems under pressure.' },
+      { roundTitle: 'Round 3: Tech + Projects', focusAreas: ['Project Discussion', 'Domain Knowledge'], whyItMatters: 'Interviewers want to see real-world application of your skills through projects.' },
+      { roundTitle: 'Round 4: HR', focusAreas: ['Behavioral', 'Culture Fit'], whyItMatters: 'The HR round evaluates communication skills, culture alignment, and long-term motivation.' },
     ];
   }
 
   if (sizeCategory === 'Mid-size') {
     return [
-      { round: 'Round 1: Online Assessment', focus: 'Coding + Aptitude', why: 'Mid-size companies use online assessments to efficiently screen a large applicant pool.', tips: ['Practice timed coding problems on competitive platforms', 'Revise aptitude and logical reasoning fundamentals'] },
-      { round: 'Round 2: Technical Interview', focus: 'Core concepts + project discussion', why: 'This round combines technical depth with practical experience evaluation.', tips: ['Review core concepts and prepare project walk-throughs', 'Practice explaining your thought process clearly'] },
-      { round: 'Round 3: HR / Managerial', focus: 'Behavioral + Team Fit', why: 'This round assesses your collaboration skills and alignment with team culture.', tips: ['Use the STAR format for behavioral answers', 'Prepare examples of teamwork and conflict resolution', 'Research the company thoroughly'] },
+      { roundTitle: 'Round 1: Online Assessment', focusAreas: ['Coding', 'Aptitude'], whyItMatters: 'Mid-size companies use online assessments to efficiently screen a large applicant pool.' },
+      { roundTitle: 'Round 2: Technical Interview', focusAreas: ['Core concepts', 'Project discussion'], whyItMatters: 'This round combines technical depth with practical experience evaluation.' },
+      { roundTitle: 'Round 3: HR / Managerial', focusAreas: ['Behavioral', 'Team Fit'], whyItMatters: 'This round assesses your collaboration skills and alignment with team culture.' },
     ];
   }
 
   // Startup
   return [
-    { round: 'Round 1: Practical Coding', focus: 'Hands-on coding task', why: 'Startups prioritize builders — this round tests if you can ship working code quickly.', tips: ['Build a small feature end-to-end before the interview as practice', 'Focus on clean, readable code over premature optimization'] },
-    { round: 'Round 2: System Discussion', focus: 'Architecture + Stack-specific questions', why: 'Startups need engineers who can reason about the full stack and make pragmatic trade-offs.', tips: ['Be ready to discuss your tech stack choices and trade-offs', 'Study the company\'s product and think about how you\'d improve it'] },
-    { round: 'Round 3: Culture Fit', focus: 'Team fit + HR', why: 'In small teams, culture fit matters as much as technical skill.', tips: ['Show genuine enthusiasm for the company\'s mission', 'Prepare examples of ownership, initiative, and fast learning'] },
+    { roundTitle: 'Round 1: Practical Coding', focusAreas: ['Hands-on coding task'], whyItMatters: 'Startups prioritize builders — this round tests if you can ship working code quickly.' },
+    { roundTitle: 'Round 2: System Discussion', focusAreas: ['Architecture', 'Stack-specific questions'], whyItMatters: 'Startups need engineers who can reason about the full stack and make pragmatic trade-offs.' },
+    { roundTitle: 'Round 3: Culture Fit', focusAreas: ['Team fit', 'HR'], whyItMatters: 'In small teams, culture fit matters as much as technical skill.' },
   ];
 }
 
-export function extractSkills(jdText: string): Record<string, string[]> {
+export function extractSkills(jdText: string): ExtractedSkills {
   const text = jdText.toLowerCase();
-  const result: Record<string, string[]> = {};
+  const result: ExtractedSkills = {
+    coreCS: [], languages: [], web: [], data: [], cloud: [], testing: [], other: [],
+  };
 
   for (const [category, keywords] of Object.entries(SKILL_MAP)) {
     const matched = keywords.filter((kw) => text.includes(kw));
     if (matched.length > 0) {
-      result[category] = [...new Set(matched)];
+      const key = CATEGORY_KEY_MAP[category];
+      if (key) {
+        result[key] = [...new Set(matched)];
+      }
     }
   }
 
-  if (Object.keys(result).length === 0) {
-    return { General: ['General fresher stack'] };
+  const hasAny = result.coreCS.length > 0 || result.languages.length > 0 ||
+    result.web.length > 0 || result.data.length > 0 ||
+    result.cloud.length > 0 || result.testing.length > 0;
+
+  if (!hasAny) {
+    result.other = ['Communication', 'Problem solving', 'Basic coding', 'Projects'];
   }
 
   return result;
 }
 
 export function computeReadinessScore(
-  skills: Record<string, string[]>,
+  skills: ExtractedSkills,
   company: string,
   role: string,
   jdText: string,
 ): number {
   let score = 35;
 
-  const categoryCount = Object.keys(skills).filter((k) => k !== 'General').length;
+  const categoryCount = (['coreCS', 'languages', 'web', 'data', 'cloud', 'testing'] as const)
+    .filter((k) => skills[k].length > 0).length;
   score += Math.min(categoryCount * 5, 30);
 
   if (company.trim().length > 0) score += 10;
@@ -326,9 +346,8 @@ export function computeReadinessScore(
 }
 
 export function generateChecklist(
-  skills: Record<string, string[]>,
-): { round: string; items: string[] }[] {
-  const categories = Object.keys(skills);
+  skills: ExtractedSkills,
+): ChecklistRound[] {
   const rounds: Record<string, string[]> = {
     'Round 1: Online Assessment': [],
     'Round 2: Technical Interview': [],
@@ -336,9 +355,23 @@ export function generateChecklist(
     'Round 4: HR / Behavioral': [],
   };
 
-  // Collect items from matching categories
-  for (const cat of categories) {
-    const template = CHECKLIST_TEMPLATES[cat] ?? CHECKLIST_TEMPLATES['General'];
+  // Map typed keys to template keys
+  const keyToTemplate: Record<keyof ExtractedSkills, string> = {
+    coreCS: 'Core CS',
+    languages: 'Core CS',
+    web: 'Web',
+    data: 'Data',
+    cloud: 'Core CS',
+    testing: 'Core CS',
+    other: 'General',
+  };
+
+  const activeKeys = (Object.keys(skills) as (keyof ExtractedSkills)[])
+    .filter((k) => skills[k].length > 0);
+
+  for (const key of activeKeys) {
+    const templateKey = keyToTemplate[key];
+    const template = CHECKLIST_TEMPLATES[templateKey] ?? CHECKLIST_TEMPLATES['General'];
     for (const [round, items] of Object.entries(template)) {
       if (rounds[round]) {
         rounds[round].push(...items);
@@ -346,8 +379,8 @@ export function generateChecklist(
     }
   }
 
-  // If no specific categories matched, use General
-  if (categories.length === 1 && categories[0] === 'General') {
+  // If only other matched, use General
+  if (activeKeys.length === 1 && activeKeys[0] === 'other') {
     const template = CHECKLIST_TEMPLATES['General'];
     for (const [round, items] of Object.entries(template)) {
       if (rounds[round]) {
@@ -356,36 +389,42 @@ export function generateChecklist(
     }
   }
 
-  // Deduplicate and limit items per round
-  return Object.entries(rounds).map(([round, items]) => ({
-    round,
+  return Object.entries(rounds).map(([roundTitle, items]) => ({
+    roundTitle,
     items: [...new Set(items)].slice(0, 8),
   }));
 }
 
 export function generatePlan(
-  skills: Record<string, string[]>,
-): { day: string; title: string; tasks: string[] }[] {
-  const categories = Object.keys(skills);
-
-  // Pick the most relevant plan template
-  if (categories.includes('Web')) return PLAN_TEMPLATES['Web'];
-  if (categories.includes('Core CS')) return PLAN_TEMPLATES['Core CS'];
-
-  // Blend: use General as base
+  skills: ExtractedSkills,
+): PlanDay[] {
+  if (skills.web.length > 0) return PLAN_TEMPLATES['Web'];
+  if (skills.coreCS.length > 0) return PLAN_TEMPLATES['Core CS'];
   return PLAN_TEMPLATES['General'];
 }
 
-export function generateQuestions(skills: Record<string, string[]>): string[] {
+export function generateQuestions(skills: ExtractedSkills): string[] {
   const questions: string[] = [];
-  const categories = Object.keys(skills);
 
-  // Pull questions from matched categories
-  for (const cat of categories) {
-    const bank = QUESTION_BANK[cat];
+  // Map typed keys to question bank keys
+  const keyToBank: Record<keyof ExtractedSkills, string> = {
+    coreCS: 'Core CS',
+    languages: 'Languages',
+    web: 'Web',
+    data: 'Data',
+    cloud: 'Cloud/DevOps',
+    testing: 'Testing',
+    other: 'General',
+  };
+
+  const activeKeys = (Object.keys(skills) as (keyof ExtractedSkills)[])
+    .filter((k) => skills[k].length > 0);
+
+  for (const key of activeKeys) {
+    const bankKey = keyToBank[key];
+    const bank = QUESTION_BANK[bankKey];
     if (bank) {
-      // Take 2-3 from each category
-      questions.push(...bank.slice(0, Math.ceil(10 / categories.length)));
+      questions.push(...bank.slice(0, Math.ceil(10 / activeKeys.length)));
     }
   }
 
