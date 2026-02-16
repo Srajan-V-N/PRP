@@ -214,7 +214,7 @@ const KNOWN_ENTERPRISES = [
 
 export function getCompanyIntel(
   company: string,
-  skills: Record<string, string[]>,
+  _skills: Record<string, string[]>,
 ): { name: string; industry: string; sizeCategory: 'Startup' | 'Mid-size' | 'Enterprise'; sizeLabel: string; hiringFocus: string } {
   const normalized = company.trim().toLowerCase();
 
