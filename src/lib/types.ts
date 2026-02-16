@@ -9,4 +9,6 @@ export interface AnalysisEntry {
   checklist: { round: string; items: string[] }[];
   questions: string[];
   readinessScore: number;
+  baseReadinessScore: number;
+  skillConfidenceMap?: Record<string, 'know' | 'practice'>;
 }

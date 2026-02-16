@@ -18,6 +18,11 @@ export function getHistory(): AnalysisEntry[] {
   }
 }
 
+export function updateEntry(updated: AnalysisEntry): void {
+  const history = getHistory().map((e) => (e.id === updated.id ? updated : e));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+
 export function deleteEntry(id: string): void {
   const history = getHistory().filter((e) => e.id !== id);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));

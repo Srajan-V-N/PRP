@@ -1,3 +1,4 @@
+import { useState, useMemo, useCallback } from 'react';
 import { Card } from '@/components/ui';
 import type { AnalysisEntry } from '@/lib/types';
 
@@ -51,12 +52,139 @@ function ScoreGauge({ score }: { score: number }) {
   );
 }
 
-export function AnalysisResults({ entry }: { entry: AnalysisEntry }) {
+interface AnalysisResultsProps {
+  entry: AnalysisEntry;
+  onEntryChange?: (entry: AnalysisEntry) => void;
+}
+
+export function AnalysisResults({ entry, onEntryChange }: AnalysisResultsProps) {
+  const allSkills = useMemo(
+    () => Object.values(entry.extractedSkills).flat(),
+    [entry.extractedSkills],
+  );
+
+  const [confidenceMap, setConfidenceMap] = useState<Record<string, 'know' | 'practice'>>(() => {
+    const defaults: Record<string, 'know' | 'practice'> = {};
+    for (const skill of allSkills) {
+      defaults[skill] = 'practice';
+    }
+    return { ...defaults, ...entry.skillConfidenceMap };
+  });
+
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  const adjustedScore = useMemo(() => {
+    const base = entry.baseReadinessScore ?? entry.readinessScore;
+    let adjustment = 0;
+    for (const skill of allSkills) {
+      adjustment += confidenceMap[skill] === 'know' ? 2 : 0;
+    }
+    return Math.max(0, Math.min(100, base + adjustment));
+  }, [entry.baseReadinessScore, entry.readinessScore, allSkills, confidenceMap]);
+
+  const toggleSkill = useCallback(
+    (skill: string) => {
+      setConfidenceMap((prev) => {
+        const next = {
+          ...prev,
+          [skill]: prev[skill] === 'know' ? 'practice' : 'know',
+        } as Record<string, 'know' | 'practice'>;
+
+        // Compute new adjusted score for the updated entry
+        const base = entry.baseReadinessScore ?? entry.readinessScore;
+        let adj = 0;
+        for (const s of allSkills) {
+          adj += next[s] === 'know' ? 2 : 0;
+        }
+        const newScore = Math.max(0, Math.min(100, base + adj));
+
+        const updated: AnalysisEntry = {
+          ...entry,
+          skillConfidenceMap: next,
+          readinessScore: newScore,
+        };
+        onEntryChange?.(updated);
+
+        return next;
+      });
+    },
+    [entry, allSkills, onEntryChange],
+  );
+
+  // --- Export helpers ---
+
+  function formatPlanText(): string {
+    return entry.plan
+      .map(({ day, title, tasks }) =>
+        `${day}: ${title}\n${tasks.map((t, i) => `  ${i + 1}. ${t}`).join('\n')}`,
+      )
+      .join('\n\n');
+  }
+
+  function formatChecklistText(): string {
+    return entry.checklist
+      .map(({ round, items }) =>
+        `${round}\n${items.map((item) => `  - ${item}`).join('\n')}`,
+      )
+      .join('\n\n');
+  }
+
+  function formatQuestionsText(): string {
+    return entry.questions.map((q, i) => `${i + 1}. ${q}`).join('\n');
+  }
+
+  function formatFullTxt(): string {
+    const sections = [
+      `${entry.role}${entry.company ? ` @ ${entry.company}` : ''}`,
+      `Readiness Score: ${adjustedScore}/100`,
+      '',
+      '=== KEY SKILLS ===',
+      ...Object.entries(entry.extractedSkills).map(
+        ([cat, skills]) => `${cat}: ${skills.join(', ')}`,
+      ),
+      '',
+      '=== 7-DAY PLAN ===',
+      formatPlanText(),
+      '',
+      '=== INTERVIEW CHECKLIST ===',
+      formatChecklistText(),
+      '',
+      '=== PRACTICE QUESTIONS ===',
+      formatQuestionsText(),
+    ];
+    return sections.join('\n');
+  }
+
+  async function copyToClipboard(text: string, key: string) {
+    await navigator.clipboard.writeText(text);
+    setCopiedKey(key);
+    setTimeout(() => setCopiedKey(null), 2000);
+  }
+
+  function downloadTxt() {
+    const blob = new Blob([formatFullTxt()], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${entry.role || 'analysis'}-${entry.company || 'prep'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setCopiedKey('download');
+    setTimeout(() => setCopiedKey(null), 2000);
+  }
+
+  const exportButtons: { key: string; label: string; action: () => void }[] = [
+    { key: 'plan', label: 'Copy 7-Day Plan', action: () => copyToClipboard(formatPlanText(), 'plan') },
+    { key: 'checklist', label: 'Copy Round Checklist', action: () => copyToClipboard(formatChecklistText(), 'checklist') },
+    { key: 'questions', label: 'Copy 10 Questions', action: () => copyToClipboard(formatQuestionsText(), 'questions') },
+    { key: 'download', label: 'Download as TXT', action: downloadTxt },
+  ];
+
   return (
     <div className="mt-6 space-y-6">
       {/* Score + Company Info */}
       <Card className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-8">
-        <ScoreGauge score={entry.readinessScore} />
+        <ScoreGauge score={adjustedScore} />
         <div className="flex-1 text-center sm:text-left">
           <h3 className="text-lg font-semibold text-gray-900">
             {entry.role || 'Role'}{' '}
@@ -75,11 +203,27 @@ export function AnalysisResults({ entry }: { entry: AnalysisEntry }) {
         </div>
       </Card>
 
-      {/* Extracted Skills */}
+      {/* Export Buttons */}
+      <div className="flex flex-wrap gap-2">
+        {exportButtons.map(({ key, label, action }) => (
+          <button
+            key={key}
+            onClick={action}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 hover:text-primary"
+          >
+            {copiedKey === key ? (key === 'download' ? 'Downloaded!' : 'Copied!') : label}
+          </button>
+        ))}
+      </div>
+
+      {/* Extracted Skills with Confidence Toggles */}
       <Card>
         <h3 className="mb-4 text-lg font-semibold text-gray-900">
           Key Skills Identified
         </h3>
+        <p className="mb-3 text-xs text-gray-500">
+          Click a skill to mark it as known — your readiness score updates live.
+        </p>
         <div className="space-y-3">
           {Object.entries(entry.extractedSkills).map(([category, skills]) => (
             <div key={category}>
@@ -87,14 +231,22 @@ export function AnalysisResults({ entry }: { entry: AnalysisEntry }) {
                 {category}
               </span>
               <div className="mt-1 flex flex-wrap gap-2">
-                {skills.map((skill) => (
-                  <span
-                    key={skill}
-                    className="rounded-full bg-primary-light px-3 py-1 text-xs font-medium text-primary"
-                  >
-                    {skill}
-                  </span>
-                ))}
+                {skills.map((skill) => {
+                  const isKnown = confidenceMap[skill] === 'know';
+                  return (
+                    <button
+                      key={skill}
+                      onClick={() => toggleSkill(skill)}
+                      className={`rounded-full px-3 py-1 text-xs font-medium transition-colors ${
+                        isKnown
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-amber-100 text-amber-700 hover:bg-amber-200'
+                      }`}
+                    >
+                      {skill} {isKnown ? '— I know this' : '— Need practice'}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -183,6 +335,55 @@ export function AnalysisResults({ entry }: { entry: AnalysisEntry }) {
             </li>
           ))}
         </ol>
+      </Card>
+
+      {/* Action Next */}
+      <Card>
+        <h3 className="mb-4 text-lg font-semibold text-gray-900">
+          Action Next
+        </h3>
+        {(() => {
+          const weakSkills = allSkills
+            .filter((s) => confidenceMap[s] === 'practice')
+            .slice(0, 3);
+
+          if (weakSkills.length === 0) {
+            return (
+              <p className="text-sm text-green-700">
+                You've marked all skills as known — great confidence! Review the
+                practice questions above and start your prep plan to stay sharp.
+              </p>
+            );
+          }
+
+          return (
+            <div className="space-y-3">
+              <p className="text-sm text-gray-600">
+                Focus on these skills first:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {weakSkills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+              {entry.plan[0] && (
+                <p className="text-sm text-gray-700">
+                  Start with{' '}
+                  <span className="font-semibold">Day 1</span> of your prep
+                  plan —{' '}
+                  <span className="font-medium text-primary">
+                    {entry.plan[0].title}
+                  </span>
+                </p>
+              )}
+            </div>
+          );
+        })()}
       </Card>
     </div>
   );

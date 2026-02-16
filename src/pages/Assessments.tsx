@@ -9,8 +9,10 @@ import {
   generatePlan,
   generateQuestions,
 } from '@/lib/analyze';
-import { saveAnalysis } from '@/lib/storage';
+import { saveAnalysis, updateEntry, getHistory } from '@/lib/storage';
 import type { AnalysisEntry } from '@/lib/types';
+
+const SESSION_KEY = 'prp-current-entry';
 
 export function Assessments() {
   const location = useLocation();
@@ -19,13 +21,19 @@ export function Assessments() {
   const [role, setRole] = useState('');
   const [jdText, setJdText] = useState('');
 
-  // Load entry from navigation state (history click from Resources)
+  // Load entry from navigation state, or restore from sessionStorage on refresh
   useEffect(() => {
     const state = location.state as { entry?: AnalysisEntry } | null;
     if (state?.entry) {
       setResult(state.entry);
-      // Clear navigation state so refresh doesn't re-trigger
+      sessionStorage.setItem(SESSION_KEY, state.entry.id);
       window.history.replaceState({}, '');
+    } else {
+      const storedId = sessionStorage.getItem(SESSION_KEY);
+      if (storedId) {
+        const match = getHistory().find((e) => e.id === storedId);
+        if (match) setResult(match);
+      }
     }
   }, [location.state]);
 
@@ -47,13 +55,16 @@ export function Assessments() {
       checklist,
       questions,
       readinessScore,
+      baseReadinessScore: readinessScore,
     };
 
     saveAnalysis(entry);
+    sessionStorage.setItem(SESSION_KEY, entry.id);
     setResult(entry);
   }
 
   function handleReset() {
+    sessionStorage.removeItem(SESSION_KEY);
     setResult(null);
     setCompany('');
     setRole('');
@@ -71,7 +82,13 @@ export function Assessments() {
               ← New Analysis
             </Button>
           </div>
-          <AnalysisResults entry={result} />
+          <AnalysisResults
+            entry={result}
+            onEntryChange={(updated) => {
+              setResult(updated);
+              updateEntry(updated);
+            }}
+          />
         </>
       ) : (
         <Card className="mt-6">
